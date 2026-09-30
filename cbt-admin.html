@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gurukul CBT Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root { --primary: #B85324; --bg: #f4f6f9; --text: #1a1a1a; --card: #ffffff; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 20px; }
+    
+    .header { background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .header h1 { font-size: 24px; }
+    
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: var(--card); padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .card h2 { font-size: 18px; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 14px; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+    
+    #scheduledDateInput { display: none; margin-top: 10px; }
+    
+    .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; transition: 0.2s; }
+    .btn:active { transform: scale(0.98); }
+    
+    .question-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th, td { padding: 12px; border: 1px solid #e2e8f0; text-align: left; }
+    th { background: #f1f5f9; color: #475569; font-weight: 600; }
+    
+    #loading { display: none; text-align: center; margin: 10px 0; color: var(--primary); font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-user-shield"></i> Gurukul CBT Admin</h1>
+      <p>Create Exams & View Results</p>
+    </div>
+
+    <!-- CREATE TEST SECTION -->
+    <div class="card">
+      <h2><i class="fas fa-plus-circle"></i> Create New Test</h2>
+      <div class="form-group">
+        <label>Test Name (परीक्षा का नाम)</label>
+        <input type="text" id="tName" placeholder="e.g. Scholarship Exam 2026">
+      </div>
+            <div class="form-group">
+        <label>Target Class (कक्षा)</label>
+        <select id="tClass">
+          <option value="Scholarship">All Classes (Scholarship)</option>
+          <option value="Fifth">5th Class</option>
+          <option value="Sixth">6th Class</option>
+          <option value="Seventh">7th Class</option>
+          <option value="Eight">8th Class</option>
+          <option value="Ninth">9th Class</option>
+          <option value="Tenth">10th Class</option>
+          <option value="Eleventh science">11th Science</option>
+          <option value="Eleventh arts">11th Arts</option>
+          <option value="Twelth science">12th Science</option>
+          <option value="Twelth arts">12th Arts</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Duration in Minutes (समय)</label>
+        <input type="number" id="tDuration" placeholder="e.g. 60">
+      </div>
+      
+      <!-- RESULT TIMING -->
+      <div class="form-group">
+        <label>Result Mode (परिणाम कब दिखाएँ?)</label>
+        <select id="tResultMode" onchange="toggleResultDate()">
+          <option value="Instant">Instant (तुरंत सबमिट करते ही)</option>
+          <option value="Scheduled">Scheduled (तय की गई तारीख पर)</option>
+        </select>
+        <input type="date" id="scheduledDateInput" title="Select Result Declaration Date">
+      </div>
+
+      <button class="btn" onclick="createTest()">Create Test</button>
+      <p id="testStatus" style="color: green; margin-top: 10px; text-align: center; font-weight: bold; display: none;"></p>
+    </div>
+
+    <!-- ADD QUESTIONS SECTION -->
+    <div class="card" id="questionSection" style="display: none;">
+      <h2><i class="fas fa-list-ol"></i> Add Questions to Test</h2>
+      <p style="margin-bottom: 15px; font-size: 13px; color: #64748b;">Active Test ID: <span id="activeTestId" style="font-weight: bold; color: var(--primary);"></span></p>
+      
+      <div id="qContainer"></div>
+      
+      <button class="btn" style="background: #10b981; margin-bottom: 10px;" onclick="addQuestionBox()"><i class="fas fa-plus"></i> Add Another Question</button>
+      <button class="btn" style="background: #0f172a;" onclick="submitAllQuestions()"><i class="fas fa-upload"></i> Save & Upload All Questions</button>
+      <p id="qStatus" style="color: green; margin-top: 10px; text-align: center; font-weight: bold; display: none;"></p>
+    </div>
+
+    <!-- VIEW RESULTS SECTION -->
+    <div class="card">
+      <h2><i class="fas fa-trophy"></i> Student Results</h2>
+      <button class="btn" style="background: #3b82f6; margin-bottom: 15px; width: auto;" onclick="loadResults()"><i class="fas fa-sync-alt"></i> Refresh Results</button>
+      
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date/Time</th>
+              <th>Roll No</th>
+              <th>Name</th>
+              <th>Class</th>
+              <th>Test ID</th>
+              <th>Score (Marks)</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody">
+            <tr><td colspan="6" style="text-align: center; color: #64748b;">Click 'Refresh Results' to view data.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="loading"><i class="fas fa-spinner fa-spin"></i> Processing...</div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbx9GfEKuUL0lMqkAF7Redp0ptecmVbXbv7WGLzDIgceZz--KDuaIC_sUk_vLUopVfLa/exec"; 
+
+    let currentTestId = "";
+    let questionCount = 0;
+
+    function toggleResultDate() {
+      const mode = document.getElementById('tResultMode').value;
+      const dateInput = document.getElementById('scheduledDateInput');
+      if (mode === "Scheduled") {
+        dateInput.style.display = "block";
+      } else {
+        dateInput.style.display = "none";
+      }
+    }
+
+    function createTest() {
+      const name = document.getElementById('tName').value;
+      const tClass = document.getElementById('tClass').value;
+      const duration = document.getElementById('tDuration').value;
+      const resultMode = document.getElementById('tResultMode').value;
+      
+      let finalResultDate = "Instant";
+      if (resultMode === "Scheduled") {
+        const selDate = document.getElementById('scheduledDateInput').value;
+        if (!selDate) { alert("Please select a valid date for scheduled result!"); return; }
+        finalResultDate = selDate; 
+      }
+
+      if(!name || !duration) { alert("Please fill all details!"); return; }
+      document.getElementById('loading').style.display = 'block';
+
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: "create_test", 
+          testName: name, 
+          targetClass: tClass, 
+          duration: duration, 
+          resultDate: finalResultDate 
+        })
+      }).then(res => res.json()).then(data => {
+        document.getElementById('loading').style.display = 'none';
+        if(data.status === "success") {
+          currentTestId = data.testId;
+          document.getElementById('testStatus').innerText = "Test Created Successfully!";
+          document.getElementById('testStatus').style.display = 'block';
+          document.getElementById('questionSection').style.display = 'block';
+          document.getElementById('activeTestId').innerText = currentTestId;
+          addQuestionBox(); 
+        }
+      });
+    }
+
+    function addQuestionBox() {
+      questionCount++;
+      const html = `
+        <div class="question-box" id="qBox_${questionCount}">
+          <div class="form-group">
+            <label>Question ${questionCount}</label>
+            <input type="text" class="qText" placeholder="Enter Question Here">
+          </div>
+          <div class="options-grid">
+            <input type="text" class="optA" placeholder="Option A">
+            <input type="text" class="optB" placeholder="Option B">
+            <input type="text" class="optC" placeholder="Option C">
+            <input type="text" class="optD" placeholder="Option D">
+          </div>
+          <div class="form-group" style="margin-top: 10px;">
+            <label>Correct Answer</label>
+            <select class="correctOpt">
+              <option value="A">Option A</option>
+              <option value="B">Option B</option>
+              <option value="C">Option C</option>
+              <option value="D">Option D</option>
+            </select>
+          </div>
+        </div>`;
+      document.getElementById('qContainer').insertAdjacentHTML('beforeend', html);
+    }
+
+    function submitAllQuestions() {
+      let questions = [];
+      for(let i=1; i<=questionCount; i++) {
+        let box = document.getElementById('qBox_'+i);
+        let qText = box.querySelector('.qText').value;
+        if(qText.trim() === "") continue;
+        questions.push({
+          qNo: i, 
+          questionText: qText, 
+          optA: box.querySelector('.optA').value, 
+          optB: box.querySelector('.optB').value,
+          optC: box.querySelector('.optC').value, 
+          optD: box.querySelector('.optD').value, 
+          correct: box.querySelector('.correctOpt').value
+        });
+      }
+      if(questions.length === 0) { alert("Please add questions!"); return; }
+
+      document.getElementById('loading').style.display = 'block';
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "upload_questions", testId: currentTestId, questions: questions })
+      }).then(res => res.json()).then(data => {
+        document.getElementById('loading').style.display = 'none';
+        if(data.status === "success") {
+          document.getElementById('qStatus').innerText = questions.length + " Questions Saved!";
+          document.getElementById('qStatus').style.display = 'block';
+        }
+      });
+    }
+
+    function loadResults() {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('resultTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center;">Loading...</td></tr>`;
+      
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "get_results" })
+      }).then(res => res.json()).then(data => {
+        document.getElementById('loading').style.display = 'none';
+        let html = "";
+        if(data.length === 0) {
+          html = `<tr><td colspan="6" style="text-align: center; color: red;">No results found yet.</td></tr>`;
+        } else {
+          data.forEach(r => {
+            html += `
+              <tr>
+                <td>${r.timestamp}</td>
+                <td style="font-weight: bold; color: var(--primary);">${r.rollNo}</td>
+                <td>${r.name}</td>
+                <td>${r.className}</td>
+                <td style="font-size: 11px; color: #64748b;">${r.testId}</td>
+                <td style="font-weight: bold; color: #10b981;">${r.score}</td>
+              </tr>
+            `;
+          });
+        }
+        document.getElementById('resultTableBody').innerHTML = html;
+      }).catch(err => {
+        document.getElementById('loading').style.display = 'none';
+        alert("Error loading results!");
+      });
+    }
+  </script>
+</body>
+</html>
