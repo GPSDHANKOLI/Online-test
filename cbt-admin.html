@@ -9,267 +9,139 @@
     :root { --primary: #B85324; --bg: #f4f6f9; --text: #1a1a1a; --card: #ffffff; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; }
-    
     .header { background: var(--primary); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .header h1 { font-size: 24px; }
-    
     .container { max-width: 800px; margin: 0 auto; }
     .card { background: var(--card); padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
     .card h2 { font-size: 18px; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
-    
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #475569; }
     .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 14px; outline: none; }
-    .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
-    
-    #scheduledDateInput { display: none; margin-top: 10px; }
-    
-    .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; transition: 0.2s; }
+    .btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
     .btn:active { transform: scale(0.98); }
-    
     .question-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
     .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-    
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
     th, td { padding: 12px; border: 1px solid #e2e8f0; text-align: left; }
-    th { background: #f1f5f9; color: #475569; font-weight: 600; }
-    
+    th { background: #f1f5f9; color: #475569; }
     #loading { display: none; text-align: center; margin: 10px 0; color: var(--primary); font-weight: bold; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <div class="header">
-      <h1><i class="fas fa-user-shield"></i> Gurukul CBT Admin</h1>
-      <p>Create Exams & View Results</p>
-    </div>
+    <div class="header"><h1><i class="fas fa-user-shield"></i> Gurukul CBT Admin</h1><p>Create Exams & View Results</p></div>
 
-    <!-- CREATE TEST SECTION -->
     <div class="card">
       <h2><i class="fas fa-plus-circle"></i> Create New Test</h2>
+      <div class="form-group"><label>Test Name</label><input type="text" id="tName"></div>
+      <div class="form-group"><label>Target Class</label><select id="tClass"><option value="Scholarship">All Classes (Scholarship)</option><option value="Eleventh science">11th Science</option><option value="Twelth science">12th Science</option><option value="Tenth">10th Class</option></select></div>
+      <div class="form-group"><label>Duration (Min)</label><input type="number" id="tDuration"></div>
       <div class="form-group">
-        <label>Test Name (परीक्षा का नाम)</label>
-        <input type="text" id="tName" placeholder="e.g. Scholarship Exam 2026">
+        <label>Result Mode</label><select id="tResultMode" onchange="document.getElementById('scheduledDateInput').style.display = this.value === 'Scheduled' ? 'block' : 'none';"><option value="Instant">Instant</option><option value="Scheduled">Scheduled Date</option></select>
+        <input type="date" id="scheduledDateInput" style="display:none; margin-top:10px;">
       </div>
-            <div class="form-group">
-        <label>Target Class (कक्षा)</label>
-        <select id="tClass">
-          <option value="Scholarship">All Classes (Scholarship)</option>
-          <option value="Fifth">5th Class</option>
-          <option value="Sixth">6th Class</option>
-          <option value="Seventh">7th Class</option>
-          <option value="Eight">8th Class</option>
-          <option value="Ninth">9th Class</option>
-          <option value="Tenth">10th Class</option>
-          <option value="Eleventh science">11th Science</option>
-          <option value="Eleventh arts">11th Arts</option>
-          <option value="Twelth science">12th Science</option>
-          <option value="Twelth arts">12th Arts</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Duration in Minutes (समय)</label>
-        <input type="number" id="tDuration" placeholder="e.g. 60">
-      </div>
-      
-      <!-- RESULT TIMING -->
-      <div class="form-group">
-        <label>Result Mode (परिणाम कब दिखाएँ?)</label>
-        <select id="tResultMode" onchange="toggleResultDate()">
-          <option value="Instant">Instant (तुरंत सबमिट करते ही)</option>
-          <option value="Scheduled">Scheduled (तय की गई तारीख पर)</option>
-        </select>
-        <input type="date" id="scheduledDateInput" title="Select Result Declaration Date">
-      </div>
-
       <button class="btn" onclick="createTest()">Create Test</button>
-      <p id="testStatus" style="color: green; margin-top: 10px; text-align: center; font-weight: bold; display: none;"></p>
+      <p id="testStatus" style="color: green; margin-top: 10px; display: none;"></p>
     </div>
 
-    <!-- ADD QUESTIONS SECTION -->
     <div class="card" id="questionSection" style="display: none;">
-      <h2><i class="fas fa-list-ol"></i> Add Questions to Test</h2>
-      <p style="margin-bottom: 15px; font-size: 13px; color: #64748b;">Active Test ID: <span id="activeTestId" style="font-weight: bold; color: var(--primary);"></span></p>
-      
+      <h2><i class="fas fa-list-ol"></i> Add Questions (ID: <span id="activeTestId"></span>)</h2>
       <div id="qContainer"></div>
-      
-      <button class="btn" style="background: #10b981; margin-bottom: 10px;" onclick="addQuestionBox()"><i class="fas fa-plus"></i> Add Another Question</button>
-      <button class="btn" style="background: #0f172a;" onclick="submitAllQuestions()"><i class="fas fa-upload"></i> Save & Upload All Questions</button>
-      <p id="qStatus" style="color: green; margin-top: 10px; text-align: center; font-weight: bold; display: none;"></p>
+      <button class="btn" style="background: #10b981; margin-bottom: 10px;" onclick="addQuestionBox()">Add Question</button>
+      <button class="btn" style="background: #0f172a;" onclick="submitAllQuestions()">Save & Upload Questions</button>
+      <p id="qStatus" style="color: green; margin-top: 10px; display: none;"></p>
     </div>
 
-    <!-- VIEW RESULTS SECTION -->
+    <!-- NEW SECTION: MANAGE & DELETE TESTS -->
     <div class="card">
-      <h2><i class="fas fa-trophy"></i> Student Results</h2>
-      <button class="btn" style="background: #3b82f6; margin-bottom: 15px; width: auto;" onclick="loadResults()"><i class="fas fa-sync-alt"></i> Refresh Results</button>
-      
+      <h2><i class="fas fa-tasks"></i> Manage & Delete Tests</h2>
+      <button class="btn" style="background: #f59e0b; margin-bottom: 15px; width: auto;" onclick="loadTests()">Load All Tests</button>
       <div style="overflow-x: auto;">
         <table>
-          <thead>
-            <tr>
-              <th>Date/Time</th>
-              <th>Roll No</th>
-              <th>Name</th>
-              <th>Class</th>
-              <th>Test ID</th>
-              <th>Score (Marks)</th>
-            </tr>
-          </thead>
-          <tbody id="resultTableBody">
-            <tr><td colspan="6" style="text-align: center; color: #64748b;">Click 'Refresh Results' to view data.</td></tr>
-          </tbody>
+          <thead><tr><th>Test ID</th><th>Name</th><th>Class</th><th>Action</th></tr></thead>
+          <tbody id="testTableBody"><tr><td colspan="4" style="text-align: center;">Click 'Load All Tests'</td></tr></tbody>
         </table>
       </div>
     </div>
 
+    <div class="card">
+      <h2><i class="fas fa-trophy"></i> Student Results</h2>
+      <button class="btn" style="background: #3b82f6; margin-bottom: 15px; width: auto;" onclick="loadResults()">Refresh Results</button>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead><tr><th>Date</th><th>Roll No</th><th>Name</th><th>Score</th></tr></thead>
+          <tbody id="resultTableBody"><tr><td colspan="4" style="text-align: center;">Click 'Refresh Results'</td></tr></tbody>
+        </table>
+      </div>
+    </div>
     <div id="loading"><i class="fas fa-spinner fa-spin"></i> Processing...</div>
   </div>
 
   <script>
+    // 👇 यहाँ अपना नया वाला APPS SCRIPT वेब ऐप लिंक डालें 👇
     const API_URL = "https://script.google.com/macros/s/AKfycbx9GfEKuUL0lMqkAF7Redp0ptecmVbXbv7WGLzDIgceZz--KDuaIC_sUk_vLUopVfLa/exec"; 
 
-    let currentTestId = "";
-    let questionCount = 0;
-
-    function toggleResultDate() {
-      const mode = document.getElementById('tResultMode').value;
-      const dateInput = document.getElementById('scheduledDateInput');
-      if (mode === "Scheduled") {
-        dateInput.style.display = "block";
-      } else {
-        dateInput.style.display = "none";
-      }
-    }
+    let currentTestId = ""; let questionCount = 0;
 
     function createTest() {
-      const name = document.getElementById('tName').value;
-      const tClass = document.getElementById('tClass').value;
-      const duration = document.getElementById('tDuration').value;
-      const resultMode = document.getElementById('tResultMode').value;
-      
-      let finalResultDate = "Instant";
-      if (resultMode === "Scheduled") {
-        const selDate = document.getElementById('scheduledDateInput').value;
-        if (!selDate) { alert("Please select a valid date for scheduled result!"); return; }
-        finalResultDate = selDate; 
-      }
-
-      if(!name || !duration) { alert("Please fill all details!"); return; }
+      const name = document.getElementById('tName').value; const tClass = document.getElementById('tClass').value; const duration = document.getElementById('tDuration').value;
+      let finalResultDate = document.getElementById('tResultMode').value === "Scheduled" ? document.getElementById('scheduledDateInput').value : "Instant";
+      if(!name || !duration) return alert("Fill all details!");
       document.getElementById('loading').style.display = 'block';
-
-      fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ 
-          action: "create_test", 
-          testName: name, 
-          targetClass: tClass, 
-          duration: duration, 
-          resultDate: finalResultDate 
-        })
-      }).then(res => res.json()).then(data => {
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "create_test", testName: name, targetClass: tClass, duration: duration, resultDate: finalResultDate }) })
+      .then(res => res.json()).then(data => {
         document.getElementById('loading').style.display = 'none';
-        if(data.status === "success") {
-          currentTestId = data.testId;
-          document.getElementById('testStatus').innerText = "Test Created Successfully!";
-          document.getElementById('testStatus').style.display = 'block';
-          document.getElementById('questionSection').style.display = 'block';
-          document.getElementById('activeTestId').innerText = currentTestId;
-          addQuestionBox(); 
-        }
+        currentTestId = data.testId; document.getElementById('testStatus').style.display = 'block'; document.getElementById('testStatus').innerText = "Test Created!";
+        document.getElementById('questionSection').style.display = 'block'; document.getElementById('activeTestId').innerText = currentTestId; addQuestionBox(); 
       });
     }
 
     function addQuestionBox() {
       questionCount++;
-      const html = `
-        <div class="question-box" id="qBox_${questionCount}">
-          <div class="form-group">
-            <label>Question ${questionCount}</label>
-            <input type="text" class="qText" placeholder="Enter Question Here">
-          </div>
-          <div class="options-grid">
-            <input type="text" class="optA" placeholder="Option A">
-            <input type="text" class="optB" placeholder="Option B">
-            <input type="text" class="optC" placeholder="Option C">
-            <input type="text" class="optD" placeholder="Option D">
-          </div>
-          <div class="form-group" style="margin-top: 10px;">
-            <label>Correct Answer</label>
-            <select class="correctOpt">
-              <option value="A">Option A</option>
-              <option value="B">Option B</option>
-              <option value="C">Option C</option>
-              <option value="D">Option D</option>
-            </select>
-          </div>
-        </div>`;
+      const html = `<div class="question-box" id="qBox_${questionCount}">
+        <label>Question ${questionCount}</label><input type="text" class="qText" style="width:100%; margin-bottom:10px;">
+        <div class="options-grid"><input type="text" class="optA" placeholder="A"><input type="text" class="optB" placeholder="B"><input type="text" class="optC" placeholder="C"><input type="text" class="optD" placeholder="D"></div>
+        <select class="correctOpt" style="margin-top:10px; width:100%;"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select>
+      </div>`;
       document.getElementById('qContainer').insertAdjacentHTML('beforeend', html);
     }
 
     function submitAllQuestions() {
       let questions = [];
       for(let i=1; i<=questionCount; i++) {
-        let box = document.getElementById('qBox_'+i);
-        let qText = box.querySelector('.qText').value;
-        if(qText.trim() === "") continue;
-        questions.push({
-          qNo: i, 
-          questionText: qText, 
-          optA: box.querySelector('.optA').value, 
-          optB: box.querySelector('.optB').value,
-          optC: box.querySelector('.optC').value, 
-          optD: box.querySelector('.optD').value, 
-          correct: box.querySelector('.correctOpt').value
-        });
+        let box = document.getElementById('qBox_'+i); let qText = box.querySelector('.qText').value; if(qText.trim() === "") continue;
+        questions.push({ qNo: i, questionText: qText, optA: box.querySelector('.optA').value, optB: box.querySelector('.optB').value, optC: box.querySelector('.optC').value, optD: box.querySelector('.optD').value, correct: box.querySelector('.correctOpt').value });
       }
-      if(questions.length === 0) { alert("Please add questions!"); return; }
-
       document.getElementById('loading').style.display = 'block';
-      fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "upload_questions", testId: currentTestId, questions: questions })
-      }).then(res => res.json()).then(data => {
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "upload_questions", testId: currentTestId, questions: questions }) })
+      .then(res => res.json()).then(data => { document.getElementById('loading').style.display = 'none'; alert("Questions Saved Successfully!"); });
+    }
+
+    function loadTests() {
+      document.getElementById('loading').style.display = 'block';
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "get_all_tests" }) })
+      .then(res => res.json()).then(data => {
         document.getElementById('loading').style.display = 'none';
-        if(data.status === "success") {
-          document.getElementById('qStatus').innerText = questions.length + " Questions Saved!";
-          document.getElementById('qStatus').style.display = 'block';
-        }
+        let html = data.length === 0 ? `<tr><td colspan="4" style="text-align: center;">No tests found.</td></tr>` : data.map(t => `<tr><td>${t.testId}</td><td>${t.testName}</td><td>${t.targetClass}</td><td><button style="background:red; color:white; padding:5px 10px; border:none; cursor:pointer;" onclick="deleteTest('${t.testId}')">Delete</button></td></tr>`).join('');
+        document.getElementById('testTableBody').innerHTML = html;
       });
+    }
+
+    function deleteTest(id) {
+      if(!confirm("Are you sure you want to delete this test?")) return;
+      document.getElementById('loading').style.display = 'block';
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "delete_test", testId: id }) })
+      .then(res => res.json()).then(data => { document.getElementById('loading').style.display = 'none'; loadTests(); });
     }
 
     function loadResults() {
       document.getElementById('loading').style.display = 'block';
-      document.getElementById('resultTableBody').innerHTML = `<tr><td colspan="6" style="text-align: center;">Loading...</td></tr>`;
-      
-      fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: "get_results" })
-      }).then(res => res.json()).then(data => {
+      fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "get_results" }) })
+      .then(res => res.json()).then(data => {
         document.getElementById('loading').style.display = 'none';
-        let html = "";
-        if(data.length === 0) {
-          html = `<tr><td colspan="6" style="text-align: center; color: red;">No results found yet.</td></tr>`;
-        } else {
-          data.forEach(r => {
-            html += `
-              <tr>
-                <td>${r.timestamp}</td>
-                <td style="font-weight: bold; color: var(--primary);">${r.rollNo}</td>
-                <td>${r.name}</td>
-                <td>${r.className}</td>
-                <td style="font-size: 11px; color: #64748b;">${r.testId}</td>
-                <td style="font-weight: bold; color: #10b981;">${r.score}</td>
-              </tr>
-            `;
-          });
-        }
+        let html = data.length === 0 ? `<tr><td colspan="4" style="text-align: center; color: red;">No results found yet.</td></tr>` : data.map(r => `<tr><td>${r.timestamp}</td><td style="color: #B85324; font-weight:bold;">${r.rollNo}</td><td>${r.name}</td><td style="font-weight: bold;">${r.score} Marks</td></tr>`).join('');
         document.getElementById('resultTableBody').innerHTML = html;
-      }).catch(err => {
-        document.getElementById('loading').style.display = 'none';
-        alert("Error loading results!");
-      });
+      }).catch(err => { document.getElementById('loading').style.display = 'none'; alert("Error loading results! Make sure API link is correct."); });
     }
   </script>
 </body>
