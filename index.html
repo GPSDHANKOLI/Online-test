@@ -131,7 +131,7 @@
     }
 
     function startTest(testId, duration, testName) {
-      if(!confirm("Are you sure? Time will begin immediately ★INSTRUCTIONS-★       ✅ आप परीक्षा शुरू करते हीं आपका समय शुरू हो जाएगा      ✅ एक टेस्ट सबमिट करने के बाद आप उसे दोबारा नहीं दे पाएंगे      ✅ टेस्ट में सही उत्तर के +4 ओर गलत उत्तर के -1 अंक मिलेंगे  🌟 Best Of Luck.")) return;
+      if(!confirm("Are you sure? Time will begin immediately                                       ★INSTRUCTIONS-★                                   ✅ आप परीक्षा शुरू करते हीं आपका समय शुरू हो जाएगा                         ✅ एक टेस्ट सबमिट करने के बाद आप उसे दोबारा नहीं दे पाएंगे                            ✅ टेस्ट में सही उत्तर के +4 ओर गलत उत्तर के -1 अंक मिलेंगे                       🌟 Best Of Luck.")) return;
       currentTest.id = testId; document.getElementById('examNameTitle').innerText = testName;
       document.getElementById('loading').style.display = 'flex';
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "start_test", testId: testId }) })
