@@ -21,11 +21,23 @@
     .test-card h3 { font-size: 16px; margin-bottom: 5px; }
     .btn-start { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
     
-    /* Result Dashboard Box */
     .result-dash { margin-top:15px; padding:15px; background:#f0fdfa; border:2px solid #10b981; border-radius:10px; text-align:center; }
     .result-dash .score { font-size:22px; color:#10b981; font-weight:800; margin-bottom:10px; }
     .result-dash .stats { display:flex; justify-content:space-between; font-size:13px; font-weight:600; }
     .result-dash .rank-badge { background:var(--primary); color:white; padding:4px 10px; border-radius:20px; font-size:12px; margin-top:10px; display:inline-block; }
+
+    /* New Instruction Modal Styling */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
+    .instruction-card { background: white; border-radius: 12px; max-width: 500px; width: 100%; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .inst-header { border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 15px; }
+    .inst-header h2 { color: #1e293b; font-size: 20px; }
+    .inst-list { list-style: none; margin-bottom: 25px; }
+    .inst-list li { margin-bottom: 12px; font-size: 14px; font-weight: 500; color: #334155; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+    .inst-list li i { color: var(--primary); margin-top: 3px; font-size: 16px; }
+    .inst-footer { display: flex; gap: 10px; }
+    .btn-cancel { flex: 1; padding: 12px; background: #e2e8f0; color: #475569; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-agree { flex: 2; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
 
     #exam-engine-screen { display: none; height: calc(100vh - 65px); flex-direction: column; }
     .exam-top-bar { display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: white; padding: 12px 20px; font-size: 14px; font-weight: 600; }
@@ -42,8 +54,8 @@
     .palette-area { width: 250px; background: var(--bg); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
     .palette-grid { padding: 15px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; flex: 1; }
     .p-btn { height: 40px; border-radius: 8px; border: 1px solid #cbd5e0; background: white; font-weight: 600; cursor: pointer; }
-    .p-btn.answered { background: #10b981; color: white; }
-    .p-btn.not-answered { background: #ef4444; color: white; }
+    .p-btn.answered { background: #10b981; color: white; border-color: #10b981; }
+    .p-btn.not-answered { background: #ef4444; color: white; border-color: #ef4444; }
     
     .exam-footer { display: flex; justify-content: space-between; padding: 15px 20px; background: white; border-top: 1px solid var(--border); }
     .footer-btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; }
@@ -51,7 +63,7 @@
     #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 1000; justify-content: center; align-items: center; }
     
     @media (max-width: 768px) {
-      .palette-area { position: absolute; right: -100%; top: 0; height: 100%; width: 85%; z-index: 50; transition: 0.3s; }
+      .palette-area { position: absolute; right: -100%; top: 0; height: 100%; width: 85%; z-index: 50; transition: 0.3s; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
       .palette-area.open { right: 0; }
     }
   </style>
@@ -63,13 +75,34 @@
   </header>
 
   <div class="container" id="test-selection-screen">
-    <h2 style="font-size: 18px; margin-bottom: 15px;">Available Exams</h2>
+    <h2 style="font-size: 18px; margin-bottom: 15px; color:#1e293b;">Available Exams</h2>
     <div id="testListArea"><p style="text-align: center;">Loading tests...</p></div>
   </div>
 
+  <!-- INSTRUCTION MODAL -->
+  <div class="modal-overlay" id="instructionModal">
+    <div class="instruction-card">
+      <div class="inst-header">
+        <h2><i class="fas fa-clipboard-list" style="color: var(--primary);"></i> Exam Instructions</h2>
+      </div>
+      <ul class="inst-list">
+        <li><i class="fas fa-clock"></i> <span>आप परीक्षा शुरू करते ही आपका समय शुरू हो जाएगा।</span></li>
+        <li><i class="fas fa-undo-alt"></i> <span>एक टेस्ट सबमिट करने के बाद आप उसे दोबारा नहीं दे पाएंगे।</span></li>
+        <li><i class="fas fa-check-circle" style="color:#10b981;"></i> <span>टेस्ट में सही उत्तर के <b>+4</b> अंक मिलेंगे।</span></li>
+        <li><i class="fas fa-times-circle" style="color:#ef4444;"></i> <span>गलत उत्तर के <b>-1</b> अंक (Negative Marking) काटे जाएंगे।</span></li>
+        <li><i class="fas fa-save"></i> <span>यदि पेज गलती से रिफ्रेश हो जाए, तो टेस्ट वहीं से शुरू होगा जहाँ आपने छोड़ा था।</span></li>
+        <li><i class="fas fa-star" style="color:#f59e0b;"></i> <span>सभी प्रश्नों के उत्तर ध्यानपूर्वक दें। <b>Best of Luck!</b></span></li>
+      </ul>
+      <div class="inst-footer">
+        <button class="btn-cancel" onclick="closeInstructions()">Cancel</button>
+        <button class="btn-agree" id="agreeBtn">I Agree & Start Test</button>
+      </div>
+    </div>
+  </div>
+
   <div id="exam-engine-screen">
-    <div class="exam-top-bar"><div id="examNameTitle">Test Name</div><div class="timer"><span id="timeRemaining">00:00:00</span></div></div>
-    <button style="background:#0f172a; color:white; padding:10px; width:100%; border:none; display:block;" onclick="document.getElementById('paletteArea').classList.toggle('open')">Toggle Question Palette</button>
+    <div class="exam-top-bar"><div id="examNameTitle">Test Name</div><div class="timer"><i class="fas fa-stopwatch"></i> <span id="timeRemaining">00:00:00</span></div></div>
+    <button style="background:#0f172a; color:white; padding:10px; width:100%; border:none; display:block; border-top:1px solid #334155;" onclick="document.getElementById('paletteArea').classList.toggle('open')"><i class="fas fa-th"></i> View Question Palette</button>
     <div class="exam-layout">
       <div class="question-area">
         <div class="q-number" id="qNumberDisplay">Question 1</div><div class="q-text" id="qTextDisplay">Loading...</div>
@@ -80,21 +113,23 @@
       </div>
     </div>
     <div class="exam-footer">
-      <button class="footer-btn" style="background:#f4f6f9; border:1px solid #cbd5e0;" onclick="prevQuestion()">Previous</button>
-      <button class="footer-btn" style="background:var(--primary); color:white;" onclick="nextQuestion()">Save & Next</button>
-      <button class="footer-btn" style="background:#ef4444; color:white;" onclick="confirmSubmit()">Submit Test</button>
+      <button class="footer-btn" style="background:#f4f6f9; border:1px solid #cbd5e0;" onclick="prevQuestion()"><i class="fas fa-chevron-left"></i> Prev</button>
+      <button class="footer-btn" style="background:var(--primary); color:white;" onclick="nextQuestion()">Next <i class="fas fa-chevron-right"></i></button>
+      <button class="footer-btn" style="background:#ef4444; color:white;" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit</button>
     </div>
   </div>
 
-  <div id="loading"><h2 style="color:var(--primary);">Processing...</h2></div>
+  <div id="loading"><h2 style="color:var(--primary);"><i class="fas fa-spinner fa-spin"></i> Processing...</h2></div>
 
   <script>
-    // 👇 यहाँ अपना नया वाला APPS SCRIPT वेब ऐप लिंक डालें 👇
+    // 👇 Yahan apna Apps Script link dalna (ZARURI) 👇
     const API_URL = "https://script.google.com/macros/s/AKfycbx9GfEKuUL0lMqkAF7Redp0ptecmVbXbv7WGLzDIgceZz--KDuaIC_sUk_vLUopVfLa/exec"; 
 
     let studentData = { roll: "", class: "", name: "" };
-    let currentTest = { id: "", duration: 0 }; let questionsData = []; let currentQIndex = 0; let studentAnswers = {}; let timerInterval;
-
+    let currentTest = { id: "", name: "", duration: 0 }; 
+    let questionsData = []; let currentQIndex = 0; let studentAnswers = {}; let timerInterval; let remainingSeconds = 0;
+    
+    // Auto-Recovery Check on Load
     window.onload = () => {
       let hash = window.location.hash.substring(1);
       let params = new URLSearchParams(hash);
@@ -104,6 +139,18 @@
       
       document.getElementById('stName').innerText = studentData.name;
       document.getElementById('stClass').innerText = studentData.class;
+      
+      // Check if a test was running before refresh
+      let activeTest = localStorage.getItem("gurukul_active_test_" + studentData.roll);
+      if(activeTest) {
+        let savedData = JSON.parse(activeTest);
+        if(confirm("You have an unfinished test. Do you want to resume?")) {
+            resumeTest(savedData);
+            return;
+        } else {
+            localStorage.removeItem("gurukul_active_test_" + studentData.roll); // Clear if they say no
+        }
+      }
       fetchAvailableTests();
     };
 
@@ -123,30 +170,80 @@
                </div>` : `<p style="color:#f59e0b; margin-top:10px;">Result will be declared on: ${t.resultDate}</p>`;
             html += `<div class="test-card" style="border-left: 4px solid #10b981;"><h3>${t.testName} <span style="background:#10b981; color:white; font-size:10px; padding:2px 5px; border-radius:4px;">Submitted</span></h3>${resText}</div>`;
           } else {
-            html += `<div class="test-card" style="border-left: 4px solid var(--primary);"><h3>${t.testName}</h3><p>Duration: ${t.duration} Mins</p><button class="btn-start" onclick="startTest('${t.testId}', ${t.duration}, '${t.testName}')">Start Test</button></div>`;
+            html += `<div class="test-card" style="border-left: 4px solid var(--primary);"><h3>${t.testName}</h3><p style="color:#64748b; font-size:13px; margin:5px 0 10px 0;"><i class="far fa-clock"></i> Duration: ${t.duration} Mins</p><button class="btn-start" onclick="showInstructions('${t.testId}', ${t.duration}, '${t.testName}')">Start Test</button></div>`;
           }
         });
         document.getElementById('testListArea').innerHTML = html;
       });
     }
 
-    function startTest(testId, duration, testName) {
-      if(!confirm("Are you sure? Time will begin immediately                                       ★INSTRUCTIONS-★
-                  ✅ आप परीक्षा शुरू करते हीं आपका समय शुरू हो जाएगा।
-        ✅ एक टेस्ट सबमिट करने के बाद आप उसे दोबारा नहीं दे पाएंगे ।
-          ✅ टेस्ट में सही उत्तर के +4 ओर गलत उत्तर के -1 अंक मिलेंगे ।
-            🌟 Best Of Luck.")) return;
-      currentTest.id = testId; document.getElementById('examNameTitle').innerText = testName;
+    // --- INSTRUCTION MODAL LOGIC ---
+    function showInstructions(testId, duration, testName) {
+      document.getElementById('instructionModal').style.display = 'flex';
+      let agreeBtn = document.getElementById('agreeBtn');
+      // Remove old event listeners
+      let newBtn = agreeBtn.cloneNode(true);
+      agreeBtn.parentNode.replaceChild(newBtn, agreeBtn);
+      
+      newBtn.addEventListener('click', function() {
+          document.getElementById('instructionModal').style.display = 'none';
+          initiateTest(testId, duration, testName);
+      });
+    }
+    
+    function closeInstructions() {
+        document.getElementById('instructionModal').style.display = 'none';
+    }
+
+    // --- TEST INITIATION ---
+    function initiateTest(testId, duration, testName) {
+      currentTest.id = testId; currentTest.name = testName;
+      document.getElementById('examNameTitle').innerText = testName;
       document.getElementById('loading').style.display = 'flex';
+      
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "start_test", testId: testId }) })
       .then(res => res.json()).then(data => {
         document.getElementById('loading').style.display = 'none';
-        questionsData = data; studentAnswers = {}; currentQIndex = 0;
-        document.getElementById('test-selection-screen').style.display = 'none'; document.getElementById('exam-engine-screen').style.display = 'flex';
-        buildPalette(); loadQuestion(0); startTimer(duration * 60);
+        questionsData = data; studentAnswers = {}; currentQIndex = 0; remainingSeconds = duration * 60;
+        
+        saveProgress(); // Initial Save
+        
+        document.getElementById('test-selection-screen').style.display = 'none'; 
+        document.getElementById('exam-engine-screen').style.display = 'flex';
+        buildPalette(); loadQuestion(0); startTimer();
       });
     }
+    
+    // --- TEST RECOVERY (ANTI-REFRESH) ---
+    function resumeTest(savedData) {
+        currentTest.id = savedData.testId;
+        currentTest.name = savedData.testName;
+        document.getElementById('examNameTitle').innerText = savedData.testName;
+        
+        questionsData = savedData.questions;
+        studentAnswers = savedData.answers;
+        currentQIndex = savedData.lastQuestionIndex || 0;
+        remainingSeconds = savedData.timeLeft;
+        
+        document.getElementById('test-selection-screen').style.display = 'none'; 
+        document.getElementById('exam-engine-screen').style.display = 'flex';
+        buildPalette(); loadQuestion(currentQIndex); startTimer();
+    }
+    
+    function saveProgress() {
+        if(questionsData.length === 0) return;
+        let saveData = {
+            testId: currentTest.id,
+            testName: currentTest.name,
+            questions: questionsData,
+            answers: studentAnswers,
+            lastQuestionIndex: currentQIndex,
+            timeLeft: remainingSeconds
+        };
+        localStorage.setItem("gurukul_active_test_" + studentData.roll, JSON.stringify(saveData));
+    }
 
+    // --- EXAM ENGINE LOGIC ---
     function buildPalette() {
       let html = ""; for(let i=0; i<questionsData.length; i++) html += `<button class="p-btn" id="pbtn_${i}" onclick="loadQuestion(${i})">${i+1}</button>`;
       document.getElementById('paletteGrid').innerHTML = html;
@@ -161,12 +258,14 @@
         html += `<div class="option-item ${isSel}" onclick="selectOpt('${opts[i]}', this)"><div class="opt-lbl">${opts[i]}</div><div>${q.options[i]}</div></div>`;
       }
       document.getElementById('optionsDisplay').innerHTML = html; updatePalette();
+      saveProgress(); // Update progress on question change
     }
 
     function selectOpt(opt, el) {
       studentAnswers[currentQIndex+1] = opt;
       Array.from(el.parentElement.children).forEach(c => c.classList.remove('selected'));
       el.classList.add('selected'); updatePalette();
+      saveProgress(); // Update progress on answer selection
     }
 
     function updatePalette() {
@@ -180,22 +279,33 @@
     function nextQuestion() { if(currentQIndex < questionsData.length - 1) loadQuestion(currentQIndex + 1); }
     function prevQuestion() { if(currentQIndex > 0) loadQuestion(currentQIndex - 1); }
 
-    function startTimer(sec) {
+    function startTimer() {
+      if(timerInterval) clearInterval(timerInterval);
       timerInterval = setInterval(() => {
-        sec--; let h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+        remainingSeconds--; 
+        let h = Math.floor(remainingSeconds/3600), m = Math.floor((remainingSeconds%3600)/60), s = remainingSeconds%60;
         document.getElementById('timeRemaining').innerText = `${h<10?"0"+h:h}:${m<10?"0"+m:m}:${s<10?"0"+s:s}`;
-        if(sec <= 0) autoSubmit();
+        
+        if(remainingSeconds % 10 === 0) saveProgress(); // Save timer state every 10 seconds
+        
+        if(remainingSeconds <= 0) autoSubmit();
       }, 1000);
     }
 
-    function confirmSubmit() { if(confirm("Submit the test now?")) autoSubmit(); }
+    function confirmSubmit() { if(confirm("Are you sure you want to submit the test now? You cannot change your answers after submission.")) autoSubmit(); }
 
     function autoSubmit() {
       clearInterval(timerInterval); document.getElementById('loading').style.display = 'flex';
       fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: "submit_test", testId: currentTest.id, rollNo: studentData.roll, studentName: studentData.name, studentClass: studentData.class, answers: studentAnswers }) })
       .then(res => res.json()).then(data => {
-        document.getElementById('exam-engine-screen').innerHTML = `<div style="text-align:center; padding:50px;"><h2 style="color:#10b981;">Test Submitted!</h2><button onclick="window.location.reload()" style="margin-top:20px; padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:8px;">View Result</button></div>`;
+        // Clear the saved progress because test is submitted
+        localStorage.removeItem("gurukul_active_test_" + studentData.roll);
+        
+        document.getElementById('exam-engine-screen').innerHTML = `<div style="text-align:center; padding:50px;"><i class="fas fa-check-circle" style="font-size:60px; color:#10b981; margin-bottom:20px;"></i><h2 style="color:#10b981;">Test Submitted Successfully!</h2><p style="color:#64748b; margin-top:10px;">Your responses have been recorded.</p><button onclick="window.location.reload()" style="margin-top:30px; padding:12px 30px; font-size:16px; font-weight:600; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer; box-shadow: 0 4px 10px rgba(184,83,36,0.3);">Return to Dashboard</button></div>`;
         document.getElementById('loading').style.display = 'none';
+      }).catch(err => {
+         document.getElementById('loading').style.display = 'none';
+         alert("Error submitting test. Please check your connection and try again.");
       });
     }
   </script>
